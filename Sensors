@@ -1,47 +1,56 @@
-package Test1;
 import javax.sound.sampled.Port;
+
 import lejos.hardware.Button;
-import lejos.hardware.ev3.LocalEV3;
-import lejos.hardware.motor.Motor;
+import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.port.MotorPort;
 import lejos.hardware.port.SensorPort;
-import lejos.hardware.sensor.*;
-import lejos.robotics.SampleProvider;
-import lejos.utility.Delay;
-import lejos.hardware.motor.EV3LargeRegulatedMotor;
-public class Sensors {
-	
-	static EV3LargeRegulatedMotor motorC=new EV3LargeRegulatedMotor(MotorPort.C);
-	static EV3LargeRegulatedMotor motorD=new EV3LargeRegulatedMotor(MotorPort.D);
-	static EV3ColorSensor  cs=new EV3ColorSensor(SensorPort.S2);
-	
-	public static void main(String[] args) throws InterruptedException {
-        SensorMode csp =cs.getRedMode();
-        float colorvalue = 0;
-         while(!Button.ESCAPE.isDown())
-            {
-            	           	 
-            	motorC.setSpeed(100);    
-            	motorD.setSpeed(100);  
-            	float [] colorsample = new float[csp.sampleSize()];
-     		    csp.fetchSample(colorsample, 0);
-     		    colorvalue = (colorsample[0]); 
-     		    System.out.println("Color: " + colorvalue);
-     		    Thread.sleep(2000);
-     		    
-     		    if(colorvalue<=0.5) {
-            		 motorC.forward();
-    	       		 motorD.forward();
-    	       		 }
-     		    
-     		    else {
-	       			motorC.stop();
-	       			motorD.stop();
-	       		 }
-            }
-            
-            System.exit(0);
-        }
-	}
- 
+import lejos.hardware.sensor.EV3ColorSensor;
+import lejos.hardware.sensor.SensorMode;
+import lejos.robotics.LightScanner;
 
+public class Linefollower extends Thread {
+	 private DataExchange DEObj;
+
+		static EV3LargeRegulatedMotor motorC=new EV3LargeRegulatedMotor(MotorPort.C);
+		static EV3LargeRegulatedMotor motorD=new EV3LargeRegulatedMotor(MotorPort.D);
+		static EV3ColorSensor  cs=new EV3ColorSensor(SensorPort.S2);
+		
+		public Linefollower(DataExchange DE){
+               DEObj = DE;
+           
+                 }
+	       
+		public void run() {
+	    	   SensorMode csp =cs.getRedMode();
+		        float colorvalue;
+	         while(!Button.ESCAPE.isDown())
+	            { 
+	        	 float [] colorsample = new float[csp.sampleSize()];
+	  		     csp.fetchSample(colorsample, 0);
+	  		     colorvalue = (colorsample[0]); 
+			     System.out.println("Color: " + colorvalue);
+			     if(DEObj.getCmd()==1) {
+	     		    if(colorvalue<=0.05) {
+	     		    	motorD.setSpeed(200);    
+	                	motorC.setSpeed(340); 
+	            		motorC.forward();
+	    	       		motorD.forward();
+	    	       		     	       		 
+	    	       		 }
+	     		      else {
+	     		    	 motorC.setSpeed(200);    
+	                 	 motorD.setSpeed(340); 
+	             		 motorC.forward();
+	     	       		 motorD.forward();
+		       		 }
+			     }
+			     else {
+			    	 motorC.setSpeed(200);    
+                 	 motorD.setSpeed(300);
+	     		    }
+	            }
+	            
+	            System.exit(0);
+	        }
+		}
+  
